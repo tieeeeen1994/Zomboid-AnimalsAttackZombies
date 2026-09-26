@@ -14,14 +14,15 @@ Why these animals and not others: [docs/research.md](docs/research.md). Engine f
 
 ## Status
 
-The behavior is implemented and passes the offline tests (`python tests/run_tests.py`, needs `lupa`), but has not been played in game yet. [docs/implementation.md](docs/implementation.md) lists what to check first. `poster.png`, `icon.png` and `preview.png` still need making.
+The behavior is implemented and passes the offline tests (`python tests/run_tests.py`, needs `lupa`), but has not been played in game yet. [docs/implementation.md](docs/implementation.md) lists what to check first.
 
 ## Layout
 
 ```
 AnimalsAttackZombies/
   workshop.txt
-  preview.png                                            (to do)
+  preview.png                                            built by scripts/make_art.py
+  scripts/make_art.py                                    preview, icon, poster, thumb from vanilla icons
   docs/research.md                                       real-life behavior -> roster
   docs/implementation.md                                 engine findings, design, what to test in game
   tests/                                                 offline tests: fake engine + fight scenarios
@@ -29,7 +30,7 @@ AnimalsAttackZombies/
     common/
     42/
       mod.info
-      poster.png, icon.png                               (to do)
+      icon.png, poster.png, thumb.png                    built by scripts/make_art.py
       media/sandbox-options.txt                          one toggle per species, EngageRange, DamageMultiplier
       media/AnimSets/<animset>/idle/AnimalsAttackZombies_Strike.xml   strike animation (cow, pig, ram, cockerel, turkey)
       media/lua/shared/AnimalsAttackZombies.lua          roster, option reads, landing a hit on a zombie
