@@ -75,3 +75,649 @@ option AnimalsAttackZombies.DamageMultiplier
     page = AnimalsAttackZombies,
     translation = AnimalsAttackZombies_DamageMultiplier,
 }
+
+option AnimalsAttackZombies.HerdRadius
+{
+    type = integer,
+    min = 1,
+    max = 30,
+    default = 8,
+    page = AnimalsAttackZombies,
+    translation = AnimalsAttackZombies_HerdRadius,
+}
+
+option AnimalsAttackZombies.YoungRadius
+{
+    type = integer,
+    min = 1,
+    max = 40,
+    default = 15,
+    page = AnimalsAttackZombies,
+    translation = AnimalsAttackZombies_YoungRadius,
+}
+
+option AnimalsAttackZombies.FleeRange
+{
+    type = integer,
+    min = 0,
+    max = 20,
+    default = 6,
+    page = AnimalsAttackZombies,
+    translation = AnimalsAttackZombies_FleeRange,
+}
+
+option AnimalsAttackZombies.GeneInfluence
+{
+    type = integer,
+    min = 0,
+    max = 200,
+    default = 100,
+    page = AnimalsAttackZombies,
+    translation = AnimalsAttackZombies_GeneInfluence,
+}
+
+option AnimalsAttackZombies.Hesitation
+{
+    type = boolean,
+    default = true,
+    page = AnimalsAttackZombiesBehavior,
+    translation = AnimalsAttackZombies_Hesitation,
+}
+
+option AnimalsAttackZombies.Aggression
+{
+    type = double,
+    min = 0.1,
+    max = 10.0,
+    default = 1.0,
+    page = AnimalsAttackZombiesBehavior,
+    translation = AnimalsAttackZombies_Aggression,
+}
+
+option AnimalsAttackZombies.ChargeChanceAtEdge
+{
+    type = double,
+    min = 0.0,
+    max = 100.0,
+    default = 4.0,
+    page = AnimalsAttackZombiesBehavior,
+    translation = AnimalsAttackZombies_ChargeChanceAtEdge,
+}
+
+option AnimalsAttackZombies.ChargeChanceUpClose
+{
+    type = double,
+    min = 0.0,
+    max = 100.0,
+    default = 60.0,
+    page = AnimalsAttackZombiesBehavior,
+    translation = AnimalsAttackZombies_ChargeChanceUpClose,
+}
+
+option AnimalsAttackZombies.AlwaysChargePercent
+{
+    type = integer,
+    min = 0,
+    max = 100,
+    default = 15,
+    page = AnimalsAttackZombiesBehavior,
+    translation = AnimalsAttackZombies_AlwaysChargePercent,
+}
+
+option AnimalsAttackZombies.StressAggression
+{
+    type = integer,
+    min = 0,
+    max = 200,
+    default = 50,
+    page = AnimalsAttackZombiesBehavior,
+    translation = AnimalsAttackZombies_StressAggression,
+}
+
+option AnimalsAttackZombies.WarningDisplay
+{
+    type = boolean,
+    default = true,
+    page = AnimalsAttackZombiesBehavior,
+    translation = AnimalsAttackZombies_WarningDisplay,
+}
+
+option AnimalsAttackZombies.WarningStandDown
+{
+    type = integer,
+    min = 100,
+    max = 300,
+    default = 125,
+    page = AnimalsAttackZombiesBehavior,
+    translation = AnimalsAttackZombies_WarningStandDown,
+}
+
+option AnimalsAttackZombies.CrowdLimit
+{
+    type = integer,
+    min = 0,
+    max = 50,
+    default = 4,
+    page = AnimalsAttackZombiesBehavior,
+    translation = AnimalsAttackZombies_CrowdLimit,
+}
+
+option AnimalsAttackZombies.CrowdRadius
+{
+    type = integer,
+    min = 1,
+    max = 30,
+    default = 8,
+    page = AnimalsAttackZombiesBehavior,
+    translation = AnimalsAttackZombies_CrowdRadius,
+}
+
+option AnimalsAttackZombies.RetreatHealth
+{
+    type = integer,
+    min = 0,
+    max = 100,
+    default = 40,
+    page = AnimalsAttackZombiesBehavior,
+    translation = AnimalsAttackZombies_RetreatHealth,
+}
+
+option AnimalsAttackZombies.StressOnEngage
+{
+    type = double,
+    min = 0.0,
+    max = 100.0,
+    default = 5.0,
+    page = AnimalsAttackZombiesBehavior,
+    translation = AnimalsAttackZombies_StressOnEngage,
+}
+
+option AnimalsAttackZombies.StressPerSecond
+{
+    type = double,
+    min = 0.0,
+    max = 20.0,
+    default = 1.5,
+    page = AnimalsAttackZombiesBehavior,
+    translation = AnimalsAttackZombies_StressPerSecond,
+}
+
+option AnimalsAttackZombies.ChaseDistance
+{
+    type = double,
+    min = 0.0,
+    max = 50.0,
+    default = 6.0,
+    page = AnimalsAttackZombiesBehavior,
+    translation = AnimalsAttackZombies_ChaseDistance,
+}
+
+option AnimalsAttackZombies.StuckTime
+{
+    type = double,
+    min = 1.0,
+    max = 60.0,
+    default = 6.0,
+    page = AnimalsAttackZombiesBehavior,
+    translation = AnimalsAttackZombies_StuckTime,
+}
+
+option AnimalsAttackZombies.GiveUpTime
+{
+    type = double,
+    min = 0.0,
+    max = 600.0,
+    default = 20.0,
+    page = AnimalsAttackZombiesBehavior,
+    translation = AnimalsAttackZombies_GiveUpTime,
+}
+
+option AnimalsAttackZombies.MaxFightTime
+{
+    type = double,
+    min = 5.0,
+    max = 600.0,
+    default = 60.0,
+    page = AnimalsAttackZombiesBehavior,
+    translation = AnimalsAttackZombies_MaxFightTime,
+}
+
+option AnimalsAttackZombies.PauseMin
+{
+    type = double,
+    min = 0.0,
+    max = 10.0,
+    default = 0.3,
+    page = AnimalsAttackZombiesBehavior,
+    translation = AnimalsAttackZombies_PauseMin,
+}
+
+option AnimalsAttackZombies.PauseMax
+{
+    type = double,
+    min = 0.0,
+    max = 10.0,
+    default = 1.0,
+    page = AnimalsAttackZombiesBehavior,
+    translation = AnimalsAttackZombies_PauseMax,
+}
+
+option AnimalsAttackZombies.ChargeRunDistance
+{
+    type = double,
+    min = 0.0,
+    max = 20.0,
+    default = 2.0,
+    page = AnimalsAttackZombiesBehavior,
+    translation = AnimalsAttackZombies_ChargeRunDistance,
+}
+
+option AnimalsAttackZombies.RunUpDistance
+{
+    type = double,
+    min = 0.0,
+    max = 20.0,
+    default = 3.0,
+    page = AnimalsAttackZombiesBehavior,
+    translation = AnimalsAttackZombies_RunUpDistance,
+}
+
+option AnimalsAttackZombies.RunUpKnockdown
+{
+    type = integer,
+    min = 0,
+    max = 100,
+    default = 25,
+    page = AnimalsAttackZombiesBehavior,
+    translation = AnimalsAttackZombies_RunUpKnockdown,
+}
+
+option AnimalsAttackZombies.BullDamage
+{
+    type = double,
+    min = 0.0,
+    max = 10.0,
+    default = 0.8,
+    page = AnimalsAttackZombiesSpecies,
+    translation = AnimalsAttackZombies_BullDamage,
+}
+
+option AnimalsAttackZombies.BullKnockdown
+{
+    type = integer,
+    min = 0,
+    max = 100,
+    default = 70,
+    page = AnimalsAttackZombiesSpecies,
+    translation = AnimalsAttackZombies_BullKnockdown,
+}
+
+option AnimalsAttackZombies.BullTemper
+{
+    type = double,
+    min = 0.0,
+    max = 5.0,
+    default = 1.0,
+    page = AnimalsAttackZombiesSpecies,
+    translation = AnimalsAttackZombies_BullTemper,
+}
+
+option AnimalsAttackZombies.BullWarnMin
+{
+    type = double,
+    min = 0.0,
+    max = 10.0,
+    default = 1.5,
+    page = AnimalsAttackZombiesSpecies,
+    translation = AnimalsAttackZombies_BullWarnMin,
+}
+
+option AnimalsAttackZombies.BullWarnMax
+{
+    type = double,
+    min = 0.0,
+    max = 10.0,
+    default = 3.0,
+    page = AnimalsAttackZombiesSpecies,
+    translation = AnimalsAttackZombies_BullWarnMax,
+}
+
+option AnimalsAttackZombies.BoarDamage
+{
+    type = double,
+    min = 0.0,
+    max = 10.0,
+    default = 0.6,
+    page = AnimalsAttackZombiesSpecies,
+    translation = AnimalsAttackZombies_BoarDamage,
+}
+
+option AnimalsAttackZombies.BoarKnockdown
+{
+    type = integer,
+    min = 0,
+    max = 100,
+    default = 50,
+    page = AnimalsAttackZombiesSpecies,
+    translation = AnimalsAttackZombies_BoarKnockdown,
+}
+
+option AnimalsAttackZombies.BoarTemper
+{
+    type = double,
+    min = 0.0,
+    max = 5.0,
+    default = 1.0,
+    page = AnimalsAttackZombiesSpecies,
+    translation = AnimalsAttackZombies_BoarTemper,
+}
+
+option AnimalsAttackZombies.BoarWarnMin
+{
+    type = double,
+    min = 0.0,
+    max = 10.0,
+    default = 0.5,
+    page = AnimalsAttackZombiesSpecies,
+    translation = AnimalsAttackZombies_BoarWarnMin,
+}
+
+option AnimalsAttackZombies.BoarWarnMax
+{
+    type = double,
+    min = 0.0,
+    max = 10.0,
+    default = 1.5,
+    page = AnimalsAttackZombiesSpecies,
+    translation = AnimalsAttackZombies_BoarWarnMax,
+}
+
+option AnimalsAttackZombies.RamDamage
+{
+    type = double,
+    min = 0.0,
+    max = 10.0,
+    default = 0.45,
+    page = AnimalsAttackZombiesSpecies,
+    translation = AnimalsAttackZombies_RamDamage,
+}
+
+option AnimalsAttackZombies.RamKnockdown
+{
+    type = integer,
+    min = 0,
+    max = 100,
+    default = 60,
+    page = AnimalsAttackZombiesSpecies,
+    translation = AnimalsAttackZombies_RamKnockdown,
+}
+
+option AnimalsAttackZombies.RamTemper
+{
+    type = double,
+    min = 0.0,
+    max = 5.0,
+    default = 0.9,
+    page = AnimalsAttackZombiesSpecies,
+    translation = AnimalsAttackZombies_RamTemper,
+}
+
+option AnimalsAttackZombies.RamWarnMin
+{
+    type = double,
+    min = 0.0,
+    max = 10.0,
+    default = 1.0,
+    page = AnimalsAttackZombiesSpecies,
+    translation = AnimalsAttackZombies_RamWarnMin,
+}
+
+option AnimalsAttackZombies.RamWarnMax
+{
+    type = double,
+    min = 0.0,
+    max = 10.0,
+    default = 2.0,
+    page = AnimalsAttackZombiesSpecies,
+    translation = AnimalsAttackZombies_RamWarnMax,
+}
+
+option AnimalsAttackZombies.RoosterDamage
+{
+    type = double,
+    min = 0.0,
+    max = 10.0,
+    default = 0.05,
+    page = AnimalsAttackZombiesSpecies,
+    translation = AnimalsAttackZombies_RoosterDamage,
+}
+
+option AnimalsAttackZombies.RoosterKnockdown
+{
+    type = integer,
+    min = 0,
+    max = 100,
+    default = 0,
+    page = AnimalsAttackZombiesSpecies,
+    translation = AnimalsAttackZombies_RoosterKnockdown,
+}
+
+option AnimalsAttackZombies.RoosterTemper
+{
+    type = double,
+    min = 0.0,
+    max = 5.0,
+    default = 1.1,
+    page = AnimalsAttackZombiesSpecies,
+    translation = AnimalsAttackZombies_RoosterTemper,
+}
+
+option AnimalsAttackZombies.RoosterWarnMin
+{
+    type = double,
+    min = 0.0,
+    max = 10.0,
+    default = 0.3,
+    page = AnimalsAttackZombiesSpecies,
+    translation = AnimalsAttackZombies_RoosterWarnMin,
+}
+
+option AnimalsAttackZombies.RoosterWarnMax
+{
+    type = double,
+    min = 0.0,
+    max = 10.0,
+    default = 0.8,
+    page = AnimalsAttackZombiesSpecies,
+    translation = AnimalsAttackZombies_RoosterWarnMax,
+}
+
+option AnimalsAttackZombies.TurkeyTomDamage
+{
+    type = double,
+    min = 0.0,
+    max = 10.0,
+    default = 0.06,
+    page = AnimalsAttackZombiesSpecies,
+    translation = AnimalsAttackZombies_TurkeyTomDamage,
+}
+
+option AnimalsAttackZombies.TurkeyTomKnockdown
+{
+    type = integer,
+    min = 0,
+    max = 100,
+    default = 0,
+    page = AnimalsAttackZombiesSpecies,
+    translation = AnimalsAttackZombies_TurkeyTomKnockdown,
+}
+
+option AnimalsAttackZombies.TurkeyTomTemper
+{
+    type = double,
+    min = 0.0,
+    max = 5.0,
+    default = 0.8,
+    page = AnimalsAttackZombiesSpecies,
+    translation = AnimalsAttackZombies_TurkeyTomTemper,
+}
+
+option AnimalsAttackZombies.TurkeyTomWarnMin
+{
+    type = double,
+    min = 0.0,
+    max = 10.0,
+    default = 1.0,
+    page = AnimalsAttackZombiesSpecies,
+    translation = AnimalsAttackZombies_TurkeyTomWarnMin,
+}
+
+option AnimalsAttackZombies.TurkeyTomWarnMax
+{
+    type = double,
+    min = 0.0,
+    max = 10.0,
+    default = 2.5,
+    page = AnimalsAttackZombiesSpecies,
+    translation = AnimalsAttackZombies_TurkeyTomWarnMax,
+}
+
+option AnimalsAttackZombies.SowDamage
+{
+    type = double,
+    min = 0.0,
+    max = 10.0,
+    default = 0.5,
+    page = AnimalsAttackZombiesSpecies,
+    translation = AnimalsAttackZombies_SowDamage,
+}
+
+option AnimalsAttackZombies.SowKnockdown
+{
+    type = integer,
+    min = 0,
+    max = 100,
+    default = 25,
+    page = AnimalsAttackZombiesSpecies,
+    translation = AnimalsAttackZombies_SowKnockdown,
+}
+
+option AnimalsAttackZombies.SowTemper
+{
+    type = double,
+    min = 0.0,
+    max = 5.0,
+    default = 1.3,
+    page = AnimalsAttackZombiesSpecies,
+    translation = AnimalsAttackZombies_SowTemper,
+}
+
+option AnimalsAttackZombies.SowWarnMin
+{
+    type = double,
+    min = 0.0,
+    max = 10.0,
+    default = 0.5,
+    page = AnimalsAttackZombiesSpecies,
+    translation = AnimalsAttackZombies_SowWarnMin,
+}
+
+option AnimalsAttackZombies.SowWarnMax
+{
+    type = double,
+    min = 0.0,
+    max = 10.0,
+    default = 1.2,
+    page = AnimalsAttackZombiesSpecies,
+    translation = AnimalsAttackZombies_SowWarnMax,
+}
+
+option AnimalsAttackZombies.CowDamage
+{
+    type = double,
+    min = 0.0,
+    max = 10.0,
+    default = 0.6,
+    page = AnimalsAttackZombiesSpecies,
+    translation = AnimalsAttackZombies_CowDamage,
+}
+
+option AnimalsAttackZombies.CowKnockdown
+{
+    type = integer,
+    min = 0,
+    max = 100,
+    default = 40,
+    page = AnimalsAttackZombiesSpecies,
+    translation = AnimalsAttackZombies_CowKnockdown,
+}
+
+option AnimalsAttackZombies.CowTemper
+{
+    type = double,
+    min = 0.0,
+    max = 5.0,
+    default = 1.3,
+    page = AnimalsAttackZombiesSpecies,
+    translation = AnimalsAttackZombies_CowTemper,
+}
+
+option AnimalsAttackZombies.CowWarnMin
+{
+    type = double,
+    min = 0.0,
+    max = 10.0,
+    default = 1.0,
+    page = AnimalsAttackZombiesSpecies,
+    translation = AnimalsAttackZombies_CowWarnMin,
+}
+
+option AnimalsAttackZombies.CowWarnMax
+{
+    type = double,
+    min = 0.0,
+    max = 10.0,
+    default = 2.0,
+    page = AnimalsAttackZombiesSpecies,
+    translation = AnimalsAttackZombies_CowWarnMax,
+}
+
+option AnimalsAttackZombies.RutRange
+{
+    type = integer,
+    min = 0,
+    max = 100,
+    default = 50,
+    page = AnimalsAttackZombiesSpecies,
+    translation = AnimalsAttackZombies_RutRange,
+}
+
+option AnimalsAttackZombies.BullHolstein
+{
+    type = integer,
+    min = 0,
+    max = 200,
+    default = 100,
+    page = AnimalsAttackZombiesSpecies,
+    translation = AnimalsAttackZombies_BullHolstein,
+}
+
+option AnimalsAttackZombies.BullSimmental
+{
+    type = integer,
+    min = 0,
+    max = 200,
+    default = 85,
+    page = AnimalsAttackZombiesSpecies,
+    translation = AnimalsAttackZombies_BullSimmental,
+}
+
+option AnimalsAttackZombies.BullAngus
+{
+    type = integer,
+    min = 0,
+    max = 200,
+    default = 75,
+    page = AnimalsAttackZombiesSpecies,
+    translation = AnimalsAttackZombies_BullAngus,
+}

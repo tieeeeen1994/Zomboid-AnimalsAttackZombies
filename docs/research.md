@@ -22,6 +22,16 @@ The game has no castration, so every bull, boar and ram counts as intact. In rea
 | `sow` | Sow | Not a male. A sow with piglets is fiercely protective. Without a litter she is no more aggressive than any pig. | Only while she has piglets |
 | `cow` | Cow | Not a male either, but she fits the same rule as the sow. Alongside bulls, cows with young calves cause most cattle attacks on people, often set off by a dog. A herd of cows will close in on a dog and trample it. | Only while she has a calf |
 
+## How they fight
+
+Real livestock do not fight every threat they see, and the mod's behavior options follow what they do instead:
+
+- **Sizing up.** A bull or a ram watches an intruder before deciding, and the deciding factor is distance: the closer it gets to him or his herd, the likelier he is to go. Mothers with young are the least patient (most cattle attacks on walkers come from cows with calves), while turkey toms bluff and strut far more than they follow through. Agitated animals are quicker to attack.
+- **Warning.** Bulls give a threat display first: they turn side-on or head-on, lower the head, paw the ground and bellow. Rams square up. Boars and roosters give little warning.
+- **Crowds.** Prey animals mob a single predator but run from a pack. Cattle bunch together, and a group will face down what one alone would not.
+- **Injury.** A hurt animal avoids a fight.
+- **Stress.** Facing and fighting a predator is stressful, and a stressed bull is a more dangerous bull, to people as well.
+
 ## Left off the roster
 
 - **Ewe**: sheep bolt. A ewe may stamp at a dog near her lamb but rarely closes in.

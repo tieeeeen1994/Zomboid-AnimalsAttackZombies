@@ -4,6 +4,7 @@ author=Tien
 description=Livestock that would stand up to a predator in real life now stand up to zombies.
 description=- Bulls, boars, rams, roosters and turkey toms defend themselves and their herd or flock.
 description=- Sows with piglets and cows with calves defend their young.
+description=- They size zombies up and warn before charging, run from crowds and when hurt, and fighting stresses them.
 description=Every other animal still runs. Each species can be turned off in the sandbox options.
 description=Must be installed on both the server and clients.
 poster=poster.png

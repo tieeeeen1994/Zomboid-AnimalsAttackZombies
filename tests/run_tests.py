@@ -9,6 +9,7 @@ then server, each folder in alphabetical order, with `require` resolving across 
 """
 import glob
 import os
+import re
 import sys
 
 import lupa.lua51 as lua51
@@ -17,12 +18,23 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 MOD = os.path.join(ROOT, "Contents", "mods", "AnimalsAttackZombies", "42", "media", "lua")
 GAME = r"C:\Program Files (x86)\Steam\steamapps\common\ProjectZomboid\media\lua"
+OPTIONS = os.path.join(ROOT, "Contents", "mods", "AnimalsAttackZombies", "42", "media", "sandbox-options.txt")
 DEFINITIONS = ["CowDefinitions", "PigDefinitions", "SheepDefinitions", "ChickenDefinitions", "TurkeyDefinitions"]
 
 
 def read(path):
     with open(path, encoding="utf-8") as f:
         return f.read()
+
+
+def sandbox_defaults():
+    """name -> default, straight from sandbox-options.txt."""
+    values = {}
+    for name, body in re.findall(r"option AnimalsAttackZombies\.(\w+)\s*\{([^}]*)\}", read(OPTIONS)):
+        kind = re.search(r"type\s*=\s*(\w+)", body).group(1)
+        raw = re.search(r"default\s*=\s*([^,\s]+)", body).group(1)
+        values[name] = raw == "true" if kind == "boolean" else float(raw)
+    return values
 
 
 def mod_files(side):
@@ -36,6 +48,9 @@ def new_state(mode):
     g.MODE = mode
     lua.execute("math.randomseed(1)")
     lua.execute(read(os.path.join(HERE, "fake_pz.lua")))
+    options = g.SandboxVars.AnimalsAttackZombies
+    for name, value in sandbox_defaults().items():
+        options[name] = value
 
     modules = {}
     for side in ("shared", "client", "server"):

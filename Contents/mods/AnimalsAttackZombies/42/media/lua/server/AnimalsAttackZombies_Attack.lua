@@ -11,6 +11,10 @@
 
     So each fight runs here, one engagement per animal:
 
+      warn     (WarningDisplay option) The animal stops, squares up to the zombie and gives
+               its stressed call, the way a bull bellows and paws before it comes. It lasts
+               the species' warn time, shorter for an aggressive animal. A zombie that walks
+               into reach meanwhile is struck at once; one that backs off is let go.
       charge   goAttack() paths the animal at the zombie and keeps its other behaviors
                (eating, wandering) out of the way. It runs when it has ground to cover.
       strike   In reach and with nothing in between, the animal stops, faces the zombie
@@ -21,6 +25,15 @@
                stays in step at any game speed.
       recover  A short pause, then back to charge, which strikes again at once if the
                zombie is still in reach.
+
+    Fighting is stressful: an animal gains stress when it squares up to a zombie
+    (StressOnEngage) and more for every second the fight goes on (StressPerSecond), on
+    the scale vanilla uses
+    (0 to 100; a herd mate killed nearby adds 10 to 30, calm animals lose about 0.5 a
+    minute). IsoAnimal.changeStress() applies the animal's stress gene. Stress is the
+    server's to change and reaches clients in AnimalPacket, and it has vanilla's knock-on
+    effects: a bull, ram, rooster or tom above 80 may turn on a player it does not trust
+    (attackIfStressed).
 
     A fight ends when the zombie dies, gets away from what the animal guards, or cannot
     be reached. A zombie given up on is left alone for a while so the animal does not
@@ -36,15 +49,20 @@ if isClient() then return end
 require "AnimalsAttackZombies"
 local AAZ = AnimalsAttackZombies
 
--- All in animation seconds.
-local RECHARGE_INTERVAL = 0.5 -- how often a charging animal that has stopped is sent at the zombie again
-local STUCK_TIME = 6          -- no ground gained in this long: the zombie is out of reach
-local GIVE_UP_TIME = 20       -- a zombie given up on is left alone this long
-local MAX_FIGHT_TIME = 60
-local RECOVER_MIN, RECOVER_MAX = 0.3, 1.0
-local RUN_DISTANCE = 2        -- charges at a run beyond this
-local RUN_UP = 3              -- a first hit after a run-up this long is harder to stay standing under
-local RUN_UP_KNOCKDOWN = 0.25
+-- Every gameplay number is a sandbox option (AAZ.opt, defaults as in sandbox-options.txt):
+--   StuckTime          s without gaining ground before an unreachable zombie is given up on
+--   GiveUpTime         s a given-up zombie is left alone
+--   MaxFightTime       s of fighting one zombie before giving up on it
+--   PauseMin/PauseMax  s between strikes
+--   ChargeRunDistance  tiles beyond which the charge is at a run
+--   RunUpDistance      tiles of charge that make the first hit harder to stay standing under
+--   RunUpKnockdown     % added to the knockdown chance of that hit
+--   WarningStandDown   % of the range from what the animal guards at which a warning ends
+--   ChaseDistance      tiles past its range an animal follows a zombie before letting it go
+--   StressOnEngage     stress on committing to a fight, before the stress gene
+--   StressPerSecond    stress per second of fighting; a 10 s fight adds about 20 at the defaults
+-- These two stay fixed: they fit the engine, not the game.
+local RECHARGE_INTERVAL = 0.5 -- animation s between re-issuing goAttack() to a stopped animal
 local REACH_SLACK = 0.5       -- AnimalAttackState misses a player further than attackDist + 0.5
 
 local engagements = {} -- IsoAnimal -> engagement
@@ -100,9 +118,54 @@ function AAZ.isEngaged(animal)
     return engagements[animal] ~= nil
 end
 
+-- "warn", "charge", "strike" or "recover", or nil when the animal is not fighting.
+function AAZ.getFightPhase(animal)
+    local e = engagements[animal]
+    return e and e.phase
+end
+
 function AAZ.isGivenUp(animal, zombie)
     local entry = givenUp[animal]
     return entry ~= nil and entry.zombie == zombie and entry.untilTime > AAZ.clock
+end
+
+local function distanceToAnchor(e)
+    local dx, dy = e.zombie:getX() - e.anchorX, e.zombie:getY() - e.anchorY
+    return math.sqrt(dx * dx + dy * dy)
+end
+
+local function addFightStress(animal, amount)
+    if amount > 0 then
+        animal:changeStress(amount)
+    end
+end
+
+local function startCharge(animal, e)
+    local dist = distance(animal, e.zombie)
+    e.phase = "charge"
+    e.timer = 0
+    e.nextCharge = 0
+    e.bestDist = dist
+    e.bestDistTime = AAZ.clock
+    e.runUp = dist >= AAZ.opt("RunUpDistance", 3)
+end
+
+local function startWarning(animal, e)
+    animal:stopAllMovementNow()
+    animal:getBehavior():setBlockMovement(true)
+    animal:setVariable("animalRunning", false)
+    animal:faceThisObject(e.zombie)
+    if isServer() then
+        sendServerCommand(AAZ.MODULE, AAZ.CMD_WARN, { animal = animal:getOnlineID() })
+    else
+        AAZ.playWarning(animal)
+    end
+    local warnMin, warnMax = AAZ.tuning(e.profile, "WarnMin"), AAZ.tuning(e.profile, "WarnMax")
+    local aggressiveness = AAZ.getGene(animal, "aggressiveness", 0.4)
+    e.phase = "warn"
+    e.timer = 0
+    e.warnTime = ZombRandFloat(math.min(warnMin, warnMax), math.max(warnMin, warnMax))
+        * math.max(0.1, 1.3 - 0.6 * aggressiveness)
 end
 
 -- anchorX/anchorY: the spot the animal defends (itself, a herd mate or a baby). A zombie
@@ -112,23 +175,25 @@ function AAZ.engage(animal, zombie, profile, range, anchorX, anchorY)
     if not timing then
         return
     end
-    local dist = distance(animal, zombie)
-    engagements[animal] = {
+    local e = {
         zombie = zombie,
         profile = profile,
         timing = timing,
         reach = getReach(animal),
+        range = range,
         anchorX = anchorX,
         anchorY = anchorY,
-        leash = range * 1.5 + 3,
+        leash = range + AAZ.opt("ChaseDistance", 6),
         started = AAZ.clock,
-        phase = "charge",
-        timer = 0,
-        nextCharge = 0,
-        bestDist = dist,
-        bestDistTime = AAZ.clock,
-        runUp = dist >= RUN_UP,
     }
+    engagements[animal] = e
+    addFightStress(animal, AAZ.opt("StressOnEngage", 5))
+    -- No time to posture at a zombie already in reach: it lashes out straight away.
+    if AAZ.opt("WarningDisplay", true) and distance(animal, zombie) > e.reach then
+        startWarning(animal, e)
+    else
+        startCharge(animal, e)
+    end
 end
 
 local function clearStrike(animal)
@@ -137,24 +202,32 @@ local function clearStrike(animal)
     end
 end
 
-local function endEngagement(animal, e, giveUp)
+-- gone: the animal has left the world (died, carried, loaded into a trailer, hung on a
+-- hook), so only the mod's own state is cleared and the animal is left as it is.
+local function endEngagement(animal, e, giveUp, gone)
     engagements[animal] = nil
-    if e.phase == "strike" then
+    if gone then
+        return
+    end
+    if e.phase == "strike" or e.phase == "warn" then
         animal:getBehavior():setBlockMovement(false)
+    elseif e.phase == "charge" and animal:isAnimalMoving() then
+        -- Otherwise it carries on down the charge path at the zombie it just broke off from.
+        animal:stopAllMovementNow()
     end
     clearStrike(animal)
     animal:setVariable("animalRunning", false)
     if giveUp then
-        givenUp[animal] = { zombie = e.zombie, untilTime = AAZ.clock + GIVE_UP_TIME }
+        givenUp[animal] = { zombie = e.zombie, untilTime = AAZ.clock + AAZ.opt("GiveUpTime", 20) }
     end
 end
 
 local function rollHit(animal, e)
     local strength = AAZ.getGene(animal, "strength", 0.5)
-    local damage = e.profile.damage * (0.5 + strength) * (AAZ.getOption("DamageMultiplier") or 1)
-    local chance = e.profile.knockdown
+    local damage = AAZ.tuning(e.profile, "Damage") * (0.5 + strength) * AAZ.opt("DamageMultiplier", 1)
+    local chance = AAZ.tuning(e.profile, "Knockdown") / 100
     if e.runUp and chance > 0 then
-        chance = chance + RUN_UP_KNOCKDOWN
+        chance = chance + AAZ.opt("RunUpKnockdown", 25) / 100
     end
     e.runUp = false
     return damage, ZombRandFloat(0, 1) < chance
@@ -214,7 +287,7 @@ local function updateCharge(animal, e)
     if dist < e.bestDist - 0.5 then
         e.bestDist = dist
         e.bestDistTime = AAZ.clock
-    elseif AAZ.clock - e.bestDistTime > STUCK_TIME then
+    elseif AAZ.clock - e.bestDistTime > AAZ.opt("StuckTime", 6) then
         return "giveup"
     end
 
@@ -225,7 +298,24 @@ local function updateCharge(animal, e)
         behavior:goAttack(zombie)
         e.nextCharge = AAZ.clock + RECHARGE_INTERVAL
     end
-    animal:setVariable("animalRunning", dist > RUN_DISTANCE)
+    animal:setVariable("animalRunning", dist > AAZ.opt("ChargeRunDistance", 2))
+    return nil
+end
+
+-- Returns "end" when the zombie backs off before the warning is over.
+local function updateWarning(animal, e, dt)
+    e.timer = e.timer + dt
+    if distanceToAnchor(e) > e.range * AAZ.opt("WarningStandDown", 125) / 100 then
+        return "end"
+    end
+    animal:faceThisObject(e.zombie)
+    if canHit(animal, e.zombie, e.reach) then
+        animal:getBehavior():setBlockMovement(false)
+        startStrike(animal, e)
+    elseif e.timer >= e.warnTime then
+        animal:getBehavior():setBlockMovement(false)
+        startCharge(animal, e)
+    end
     return nil
 end
 
@@ -240,16 +330,16 @@ local function updateStrike(animal, e, dt)
         clearStrike(animal)
         e.phase = "recover"
         e.timer = 0
-        e.recover = ZombRandFloat(RECOVER_MIN, RECOVER_MAX)
+        local pauseMin, pauseMax = AAZ.opt("PauseMin", 0.3), AAZ.opt("PauseMax", 1.0)
+        e.recover = ZombRandFloat(math.min(pauseMin, pauseMax), math.max(pauseMin, pauseMax))
     end
 end
 
 local function updateRecover(animal, e, dt)
     e.timer = e.timer + dt
     if e.timer >= e.recover then
-        e.phase = "charge"
-        e.bestDist = distance(animal, e.zombie)
-        e.bestDistTime = AAZ.clock
+        startCharge(animal, e)
+        e.runUp = false
     end
 end
 
@@ -275,7 +365,7 @@ local function checkFight(animal, e)
     if dx * dx + dy * dy > e.leash * e.leash then
         return "end" -- driven off, or it wandered away
     end
-    if AAZ.clock - e.started > MAX_FIGHT_TIME then
+    if AAZ.clock - e.started > AAZ.opt("MaxFightTime", 60) then
         return "giveup"
     end
     return nil
@@ -290,12 +380,15 @@ local function onTick()
     for animal, e in pairs(engagements) do
         local outcome
         if isAnimalGone(animal) then
-            outcome = "end"
+            outcome = "gone"
         else
             outcome = checkFight(animal, e)
         end
         if not outcome then
-            if e.phase == "charge" then
+            addFightStress(animal, AAZ.opt("StressPerSecond", 1.5) * dt)
+            if e.phase == "warn" then
+                outcome = updateWarning(animal, e, dt)
+            elseif e.phase == "charge" then
                 outcome = updateCharge(animal, e)
             elseif e.phase == "strike" then
                 updateStrike(animal, e, dt)
@@ -304,14 +397,23 @@ local function onTick()
             end
         end
         if outcome then
-            finished[#finished + 1] = { animal = animal, e = e, giveUp = outcome == "giveup" }
+            finished[#finished + 1] = { animal = animal, e = e, outcome = outcome }
         end
     end
 
     for _, f in ipairs(finished) do
         if engagements[f.animal] == f.e then
-            endEngagement(f.animal, f.e, f.giveUp)
+            endEngagement(f.animal, f.e, f.outcome == "giveup", f.outcome == "gone")
         end
+    end
+end
+
+-- Breaks off a fight from outside: the threat scan does this when a crowd gathers or the
+-- animal is hurt. Never called while onTick walks the engagements.
+function AAZ.disengage(animal)
+    local e = engagements[animal]
+    if e then
+        endEngagement(animal, e, false)
     end
 end
 

@@ -15,6 +15,7 @@ World = {
     fenceX = nil,      -- a fence runs between x = fenceX - 1 and x = fenceX
     sent = {},         -- sendServerCommand calls
     varLog = {},       -- { time, animal, key, value } for every setVariable
+    soundLog = {},     -- { time, animal, id } for every playBreedSound
     hitLog = {},       -- { time, zombie, health } for every setHealth
 }
 
@@ -149,6 +150,7 @@ function NewAnimal(animalType, x, y, opts)
         babies = newList(), baby = opts.baby or false,
         breed = opts.breed, inSeason = opts.inSeason ~= false,
         genes = opts.genes or { aggressiveness = 0.4, strength = 0.5 },
+        health = opts.health or 1.0, stress = opts.stress or 0,
         goAttackCalls = 0, fled = 0,
     } }
     local s = a.s
@@ -196,6 +198,17 @@ function NewAnimal(animalType, x, y, opts)
         return strict({ getCurrentValue = function() return value end }, "AnimalAllele")
     end
     function a:isInMatingSeason() return s.inSeason end
+    function a:getHealth() return s.health end
+    function a:getStress() return s.stress end
+    function a:changeStress(inc)
+        -- IsoAnimal.changeStress: a rise is scaled by 1 + the stress gene.
+        if inc > 0 and s.genes.stress then inc = inc * (1 + s.genes.stress) end
+        s.stress = math.min(100, math.max(0, s.stress + inc))
+    end
+    function a:playBreedSound(id)
+        World.soundLog[#World.soundLog + 1] = { time = World.time, animal = a, id = id }
+        return 1
+    end
     function a:isAnimalMoving() return s.moving end
     function a:getBehavior() return behavior end
     function a:stopAllMovementNow()
@@ -285,12 +298,9 @@ function FireServerCommand(module, command, args)
     for _, fn in ipairs(handlers.OnServerCommand) do fn(module, command, args) end
 end
 
-SandboxVars = {
-    AnimalsAttackZombies = {
-        Bulls = true, Boars = true, Rams = true, Roosters = true, TurkeyToms = true,
-        Sows = true, Cows = true, EngageRange = 6, DamageMultiplier = 1.0,
-    },
-}
+-- Filled from the mod's own sandbox-options.txt by run_tests.py, so tests play by the
+-- real defaults.
+SandboxVars = { AnimalsAttackZombies = {} }
 
 -- Simulation ---------------------------------------------------------------------------
 
