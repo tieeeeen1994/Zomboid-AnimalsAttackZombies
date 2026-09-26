@@ -1,0 +1,77 @@
+VERSION = 1,
+
+option AnimalsAttackZombies.Bulls
+{
+    type = boolean,
+    default = true,
+    page = AnimalsAttackZombies,
+    translation = AnimalsAttackZombies_Bulls,
+}
+
+option AnimalsAttackZombies.Boars
+{
+    type = boolean,
+    default = true,
+    page = AnimalsAttackZombies,
+    translation = AnimalsAttackZombies_Boars,
+}
+
+option AnimalsAttackZombies.Rams
+{
+    type = boolean,
+    default = true,
+    page = AnimalsAttackZombies,
+    translation = AnimalsAttackZombies_Rams,
+}
+
+option AnimalsAttackZombies.Roosters
+{
+    type = boolean,
+    default = true,
+    page = AnimalsAttackZombies,
+    translation = AnimalsAttackZombies_Roosters,
+}
+
+option AnimalsAttackZombies.TurkeyToms
+{
+    type = boolean,
+    default = true,
+    page = AnimalsAttackZombies,
+    translation = AnimalsAttackZombies_TurkeyToms,
+}
+
+option AnimalsAttackZombies.Sows
+{
+    type = boolean,
+    default = true,
+    page = AnimalsAttackZombies,
+    translation = AnimalsAttackZombies_Sows,
+}
+
+option AnimalsAttackZombies.Cows
+{
+    type = boolean,
+    default = true,
+    page = AnimalsAttackZombies,
+    translation = AnimalsAttackZombies_Cows,
+}
+
+option AnimalsAttackZombies.EngageRange
+{
+    type = integer,
+    min = 1,
+    max = 20,
+    default = 6,
+    page = AnimalsAttackZombies,
+    translation = AnimalsAttackZombies_EngageRange,
+}
+
+option AnimalsAttackZombies.DamageMultiplier
+{
+    type = double,
+    min = 0.1,
+    max = 10.0,
+    default = 1.0,
+    page = AnimalsAttackZombies,
+    translation = AnimalsAttackZombies_DamageMultiplier,
+}

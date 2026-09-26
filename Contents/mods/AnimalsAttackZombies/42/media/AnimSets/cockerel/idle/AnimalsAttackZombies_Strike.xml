@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animNode>
+	<m_Name>aazStrike</m_Name>
+	<m_AnimName>Chk_Cock_Attack_Claw</m_AnimName>
+	<m_Looped>false</m_Looped>
+	<m_BlendTime>0.20</m_BlendTime>
+	<m_SyncTrackingEnabled>false</m_SyncTrackingEnabled>
+	<m_Conditions x_name="6f2b9c1e-3d4a-4e8b-9a71-0c5d2e8f1d01">
+		<m_Name>idleAction</m_Name>
+		<m_Type>STRING</m_Type>
+		<m_Value>aazStrike</m_Value>
+	</m_Conditions>
+	<m_Events x_name="6f2b9c1e-3d4a-4e8b-9a71-0c5d2e8f1d02">
+		<m_EventName>PlayBreedSound</m_EventName>
+		<m_Time>Start</m_Time>
+		<m_ParameterValue>fight</m_ParameterValue>
+	</m_Events>
+	<m_Events x_name="6f2b9c1e-3d4a-4e8b-9a71-0c5d2e8f1d03">
+		<m_EventName>PlaySound</m_EventName>
+		<m_Time>Start</m_Time>
+		<m_ParameterValue>AnimalFoleyChickenFight</m_ParameterValue>
+	</m_Events>
+	<m_Events x_name="6f2b9c1e-3d4a-4e8b-9a71-0c5d2e8f1d04">
+		<m_EventName>idleActionEnd</m_EventName>
+		<m_Time>End</m_Time>
+		<m_ParameterValue></m_ParameterValue>
+	</m_Events>
+</animNode>

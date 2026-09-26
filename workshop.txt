@@ -1,0 +1,11 @@
+version=1
+title=Animals Attack Zombies
+description=Livestock that would stand up to a predator in real life now stand up to zombies. Every other animal still runs, as in vanilla. Each species can be turned off in the sandbox options. Install it on both the server and clients.
+description=
+description=[list]
+description=[*]Bulls, boars and rams charge zombies that come near them or their herd.
+description=[*]Roosters and turkey toms go after zombies that come near their flock. They are small, so they harass more than they hurt.
+description=[*]A sow with piglets or a cow with a calf defends her young. Without them she runs like any other animal.
+description=[/list]
+tags=Build 42;Animals;Balance
+visibility=public

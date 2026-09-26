@@ -1,0 +1,30 @@
+{
+    "Sandbox_AnimalsAttackZombies": "Animals Attack Zombies",
+
+    "Sandbox_AnimalsAttackZombies_Bulls": "Bulls",
+    "Sandbox_AnimalsAttackZombies_Bulls_tooltip": "Bulls charge zombies that come near them or their herd, all year round. Dairy bulls are the quickest to fight, as they are in real life.",
+
+    "Sandbox_AnimalsAttackZombies_Boars": "Boars",
+    "Sandbox_AnimalsAttackZombies_Boars_tooltip": "Boars charge zombies that come near them or their herd, all year round, and their tusks can knock a zombie down.",
+
+    "Sandbox_AnimalsAttackZombies_Rams": "Rams",
+    "Sandbox_AnimalsAttackZombies_Rams_tooltip": "Rams charge zombies that come near them or their flock. They are at their most aggressive in the breeding season, September to February.",
+
+    "Sandbox_AnimalsAttackZombies_Roosters": "Roosters",
+    "Sandbox_AnimalsAttackZombies_Roosters_tooltip": "Roosters go after zombies that come near their hens. A rooster is small, so he harasses a zombie more than he hurts it.",
+
+    "Sandbox_AnimalsAttackZombies_TurkeyToms": "Turkey Toms",
+    "Sandbox_AnimalsAttackZombies_TurkeyToms_tooltip": "Turkey toms go after zombies that come near their flock, most of all in the spring breeding season, April and May. Like roosters, they harass more than they hurt.",
+
+    "Sandbox_AnimalsAttackZombies_Sows": "Sows With Piglets",
+    "Sandbox_AnimalsAttackZombies_Sows_tooltip": "A sow charges zombies that come near her piglets. Without piglets she runs from zombies like any other pig.",
+
+    "Sandbox_AnimalsAttackZombies_Cows": "Cows With Calves",
+    "Sandbox_AnimalsAttackZombies_Cows_tooltip": "A cow charges zombies that come near her calf. Without a calf she runs from zombies like any other cow.",
+
+    "Sandbox_AnimalsAttackZombies_EngageRange": "Engage Range",
+    "Sandbox_AnimalsAttackZombies_EngageRange_tooltip": "How close, in tiles, a zombie has to come to an animal, its herd or its young before the animal charges. The default of 6 is the distance at which vanilla animals start running from a zombie. It varies by animal: an aggressive one reacts from further away and a calm one from closer, beef bulls from a little closer than dairy bulls, and rams and turkey toms from half as far outside their breeding season.",
+
+    "Sandbox_AnimalsAttackZombies_DamageMultiplier": "Damage Multiplier",
+    "Sandbox_AnimalsAttackZombies_DamageMultiplier_tooltip": "Scales the damage every animal does to zombies. Each animal's own strength still counts, so a bull or a boar always hits harder than a rooster."
+}
