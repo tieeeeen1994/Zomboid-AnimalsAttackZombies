@@ -1,4 +1,5 @@
 version=1
+id=3808643352
 title=Animals Attack Zombies
 description=Livestock that would stand up to a predator in real life now stand up to zombies. Every other animal still runs, as in vanilla. Each species can be turned off in the sandbox options. Install it on both the server and clients.
 description=
