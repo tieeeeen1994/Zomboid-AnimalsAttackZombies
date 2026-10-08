@@ -13,12 +13,12 @@
       - shared/Definitions/animal/AnimalsAttackZombies_GeneralDefinitions.lua: stops the
         roster animals running from zombies on their own, so they can stand their ground.
       - server/AnimalsAttackZombies_Threat.lua: decides when an animal turns on a zombie
-        (sizing it up, crowds, hurt animals), and makes the roster animals that are not
+        (sizing it up, crowds, hurt animals), makes the roster animals that are not
         fighting run instead.
-      - server/AnimalsAttackZombies_Attack.lua: the warning display, the charge, the hits
-        and the stress of fighting.
-      - client/AnimalsAttackZombies_Client.lua: plays the warning call and the strike and
-        lands the hit on a multiplayer client, where the server cannot.
+      - server/AnimalsAttackZombies_Attack.lua: the warning display, the charge and the
+        hits.
+      - client/AnimalsAttackZombies_Client.lua: plays the warning call, the strike and the
+        hit on a multiplayer client, where the server cannot.
       - AnimSets/<animset>/idle/AnimalsAttackZombies_Strike.xml: the strike animation.
       - Server files start with `if isClient() then return end`: animal AI only runs on
         the server and in single player (IsoAnimal.updateInternal() skips
@@ -34,12 +34,15 @@ AnimalsAttackZombies = AnimalsAttackZombies or {}
 local AAZ = AnimalsAttackZombies
 
 AAZ.MODULE = "AnimalsAttackZombies"
--- Server -> every client: play the strike on this animal. idleAction is not synced
--- (AnimalStateVariables only sends on-floor, dead, running and attacking).
+-- Server -> every client: play the strike on this animal now. AnimalPacket does carry
+-- idleAction, but only every 0.8-1 s (AnimalSynchronizationManager); the server also pushes
+-- an extra packet (IsoAnimal.sendExtraUpdateToClients), which is unreliable.
 AAZ.CMD_STRIKE = "Strike"
--- Server -> the player whose client simulates the zombie: land the hit on it. A zombie
--- belongs to one client in multiplayer (NetworkZombieManager.moveZombie), and anything
--- the server does to it is overwritten by that client's next update.
+-- Server -> every client: an animal's hit on a zombie. Only the client that simulates the
+-- zombie (NetworkZombieManager.moveZombie) changes its health, since anything else is
+-- overwritten by that client's next update; every other client plays the stagger or
+-- knockdown on its own copy, as vanilla does with a relayed weapon hit (ZombiePacket
+-- carries health but no hit reaction).
 AAZ.CMD_HIT = "Hit"
 -- Server -> every client: play this animal's warning call. Animal voices are played by each
 -- client's own AnimalSoundState, so a sound started on the server is never heard.
@@ -194,24 +197,13 @@ local function getSide(zombie, dx, dy)
     return "LEFT"
 end
 
--- Lands a hit from an animal standing at (fromX, fromY). Must run where the zombie is
--- simulated: in single player, on the client that owns it, or on the server when no
--- client does.
---
--- Mirrors what a weapon hit leaves behind (IsoGameCharacter.calculateHitDirection,
--- CombatManager's playerAttackPosition, IsoZombie.knockDown) without IsoZombie.Hit(),
--- which needs a HandWeapon and a player wielder. A zombie out of health is always
--- knocked down: once it is on the ground ZombieOnGroundState finds it dead and calls
--- die(), which also reports the death to the server in multiplayer.
-function AAZ.applyHit(zombie, fromX, fromY, damage, knockdown)
-    if zombie:isDead() then
-        return
-    end
-
-    local health = math.max(zombie:getHealth() - damage, 0)
-    zombie:setHealth(health)
+-- The visible part of a hit from an animal standing at (fromX, fromY): the stagger, or
+-- the knockdown when knockdown is true. Mirrors what a weapon hit leaves behind
+-- (IsoGameCharacter.calculateHitDirection, CombatManager's playerAttackPosition,
+-- IsoZombie.knockDown). A zombie on the ground is left as it is: trampled where it lies,
+-- it stays down, and dies there once out of health.
+function AAZ.applyHitReaction(zombie, fromX, fromY, knockdown)
     if zombie:isOnFloor() then
-        -- Trampled where it lies: it stays down, and dies there once out of health.
         return
     end
 
@@ -224,7 +216,7 @@ function AAZ.applyHit(zombie, fromX, fromY, damage, knockdown)
     hitDir:normalize()
     zombie:setHitReaction("")
 
-    if knockdown or health <= 0 then
+    if knockdown then
         -- Turned to face the animal, so it goes over backwards and away from it. Only
         -- FRONT reliably knocks down: the transitions for a hit from behind test for
         -- "BACK", which vanilla never sets.
@@ -242,4 +234,22 @@ function AAZ.applyHit(zombie, fromX, fromY, damage, knockdown)
         zombie:setHitForce(0.6)
     end
     zombie:reportEvent("wasHit")
+end
+
+-- Lands a hit from an animal standing at (fromX, fromY): the damage and its reaction. Must
+-- run where the zombie is simulated: in single player, on the client that owns it, or on
+-- the server when no client does.
+--
+-- IsoZombie.Hit() needs a HandWeapon and a player wielder, so it is not used. A zombie out
+-- of health is always knocked down: once it is on the ground ZombieOnGroundState finds it
+-- dead and calls die(). In multiplayer the owner's next update carries the health to the
+-- server, which kills the zombie and tells every client.
+function AAZ.applyHit(zombie, fromX, fromY, damage, knockdown)
+    if zombie:isDead() then
+        return
+    end
+
+    local health = math.max(zombie:getHealth() - damage, 0)
+    zombie:setHealth(health)
+    AAZ.applyHitReaction(zombie, fromX, fromY, knockdown or health <= 0)
 end

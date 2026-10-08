@@ -17,7 +17,12 @@ import lupa.lua51 as lua51
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 MOD = os.path.join(ROOT, "Contents", "mods", "AnimalsAttackZombies", "42", "media", "lua")
-GAME = r"C:\Program Files (x86)\Steam\steamapps\common\ProjectZomboid\media\lua"
+GAME_CANDIDATES = [
+    r"C:\Program Files (x86)\Steam\steamapps\common\ProjectZomboid\media\lua",
+    os.path.expanduser("~/Library/Application Support/Steam/steamapps/common/ProjectZomboid/"
+                       "Project Zomboid.app/Contents/Java/media/lua"),
+]
+GAME = next((p for p in GAME_CANDIDATES if os.path.isdir(p)), GAME_CANDIDATES[0])
 OPTIONS = os.path.join(ROOT, "Contents", "mods", "AnimalsAttackZombies", "42", "media", "sandbox-options.txt")
 DEFINITIONS = ["CowDefinitions", "PigDefinitions", "SheepDefinitions", "ChickenDefinitions", "TurkeyDefinitions"]
 

@@ -16,9 +16,9 @@ The game has no castration, so every bull, boar and ram counts as intact. In rea
 |---|---|---|---|
 | `bull` | Bull | The most dangerous animal on a farm. Bulls defend their herd and ground, and charge rather than retreat. Dairy bulls (Holstein) are much more aggressive than beef bulls (Angus). | A zombie near him or his herd, all year |
 | `boar` | Boar | Intact boars are aggressive all year and slash upward with their tusks. Vanilla already gives them `knockdownAttack` and `canDoLaceration`, but never lets them attack (no `attackBack` or `attackIfStressed`). | A zombie near him or his herd, all year |
-| `ram` | Ram | Rams charge and head-butt, and are at their worst in the rut. The game's sheep mating season is September to February. | A zombie near him or his flock, stronger in the rut |
+| `ram` | Ram | Rams charge and head-butt, and are at their worst in the rut. The game's sheep mating season runs September to January (`matingPeriodStart` 9, `matingPeriodEnd` 2, end month excluded). | A zombie near him or his flock, stronger in the rut |
 | `cockerel` | Rooster | The flock's guard. He keeps watch, sounds the alarm and fights hawks, foxes, dogs and people with his spurs. Vanilla already gives him `attackIfStressed` and `attackBack`. His damage is tiny (`baseDmg` 0.1). | A zombie near his hens |
-| `gobblers` | Turkey tom | Territorial and known to attack people, most of all in the spring breeding season (April to May in the game). Tiny damage, like the rooster. | A zombie near him or his flock, stronger in spring |
+| `gobblers` | Turkey tom | Territorial and known to attack people, most of all in the spring breeding season (April in the game: `matingPeriodStart` 4, `matingPeriodEnd` 5, end month excluded). Tiny damage, like the rooster. | A zombie near him or his flock, stronger in spring |
 | `sow` | Sow | Not a male. A sow with piglets is fiercely protective. Without a litter she is no more aggressive than any pig. | Only while she has piglets |
 | `cow` | Cow | Not a male either, but she fits the same rule as the sow. Alongside bulls, cows with young calves cause most cattle attacks on people, often set off by a dog. A herd of cows will close in on a dog and trample it. | Only while she has a calf |
 
@@ -30,7 +30,7 @@ Real livestock do not fight every threat they see, and the mod's behavior option
 - **Warning.** Bulls give a threat display first: they turn side-on or head-on, lower the head, paw the ground and bellow. Rams square up. Boars and roosters give little warning.
 - **Crowds.** Prey animals mob a single predator but run from a pack. Cattle bunch together, and a group will face down what one alone would not.
 - **Injury.** A hurt animal avoids a fight.
-- **Stress.** Facing and fighting a predator is stressful, and a stressed bull is a more dangerous bull, to people as well.
+- **Stress.** Facing and fighting a predator is stressful, but in the game stress past 80 makes cattle, pigs and sheep break through fences whenever they move, and costs pregnancies, milk and wool. So fighting adds no stress in the mod.
 
 ## Left off the roster
 

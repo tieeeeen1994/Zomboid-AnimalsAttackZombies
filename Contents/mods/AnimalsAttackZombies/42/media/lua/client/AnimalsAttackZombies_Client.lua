@@ -6,13 +6,14 @@
 
       - Play the warning call. Animal voices come from each client's own AnimalSoundState;
         one started on the server is never heard.
-      - Play the strike. The server sets idleAction on its copy of the animal, and
-        idleAction is not synced (AnimalStateVariables only carries on-floor, dead,
-        running and attacking), so every client sets it on its own copy.
+      - Start the strike at once. AnimalPacket carries idleAction, but only every 0.8-1 s
+        (or as an unreliable extra update), so the server also tells every client.
       - Land the hit. A zombie is simulated by one client (NetworkZombieManager.moveZombie
         hands it to the nearest player), whose updates overwrite anything the server does
-        to it. The server sends the hit to that player, and the knockdown and death then
-        reach everyone through the zombie's own sync, as with any other hit.
+        to it: that client takes the damage, and its next update carries the health to the
+        server, which kills the zombie for everyone. Every other client plays the stagger
+        or knockdown on its own copy, as vanilla does with a relayed weapon hit, since a
+        zombie's own sync (ZombiePacket) carries no hit reaction.
 
     Single player does all three on the spot and never gets here. Everything else a
     client sees (the animal facing the zombie, running, its stress) comes through the
@@ -41,9 +42,14 @@ local function onServerCommand(module, command, args)
         end
     elseif command == AAZ.CMD_HIT then
         local zombie = AAZ.findZombie(args.zombie)
-        -- Ownership may have moved to another client since the server sent this, and only
-        -- the owner's changes stick.
-        if zombie and not zombie:isRemoteZombie() then
+        if not zombie or zombie:isDead() then
+            return
+        end
+        -- Whoever owns the zombie when the hit arrives takes the damage; ownership may have
+        -- moved since the server sent it.
+        if zombie:isRemoteZombie() then
+            AAZ.applyHitReaction(zombie, args.x, args.y, args.knockdown or args.lethal)
+        else
             AAZ.applyHit(zombie, args.x, args.y, args.damage, args.knockdown)
         end
     end

@@ -202,21 +202,43 @@ function Tests.rooster_only_harasses()
     check(AAZ.isEngaged(rooster), "rooster gave up")
 end
 
-function Tests.gives_up_across_a_fence()
+function Tests.ignores_zombie_behind_a_fence()
     Plain()
     World.fenceX = 12
-    -- Pressed up against the fence, well within reach: only the fence stops the hit.
+    -- Pressed up against the fence, well within reach: only the fence is between them.
     local bull = NewAnimal("bull", 11.4, 10, { breed = "holstein" })
     local zombie = NewZombie(12.6, 10)
-    Run(1)
-    check(AAZ.isEngaged(bull), "bull did not engage across the fence")
-    Run(7)
-    check(not AAZ.isEngaged(bull), "bull still trying after 8 s")
-    Run(17) -- 25 s in: inside the 20 s it leaves a given-up zombie alone
-    check(not AAZ.isEngaged(bull), "bull went straight back to a zombie it gave up on")
+    Run(30)
+    check(not AAZ.isEngaged(bull) and bull.s.goAttackCalls == 0, "bull went for a zombie behind its fence")
     check(zombie:getHealth() == 2.0, "hit through a fence")
-    Run(4)
-    check(AAZ.isEngaged(bull), "bull never tried again")
+end
+
+function Tests.gives_up_when_cut_off()
+    Plain()
+    local bull = NewAnimal("bull", 10, 10, { breed = "holstein" })
+    local zombie = NewZombie(14, 10, { health = 100 })
+    Run(0.6)
+    check(AAZ.isEngaged(bull), "bull did not engage")
+    World.fenceX = 12 -- a gate shuts between them
+    bull.s.x = 11.4
+    zombie.s.x = 12.6
+    Run(8)
+    check(not AAZ.isEngaged(bull), "bull still trying after 8 s")
+    check(AAZ.isGivenUp(bull, zombie), "zombie not marked given up")
+    check(not bull.s.blockMovement, "bull left frozen")
+    Run(20) -- the 20 s from giving up (about 7 s in) are over
+    check(not AAZ.isGivenUp(bull, zombie), "given up for longer than GiveUpTime")
+end
+
+function Tests.remembers_every_zombie_it_gave_up_on()
+    Plain()
+    SandboxVars.AnimalsAttackZombies.MaxFightTime = 5
+    local rooster = NewAnimal("cockerel", 10, 10)
+    local first = NewZombie(11, 10, { health = 100 })
+    local second = NewZombie(10, 11.2, { health = 100 })
+    Run(13) -- two fights of 5 s, one after the other
+    check(AAZ.isGivenUp(rooster, first) and AAZ.isGivenUp(rooster, second), "a given-up zombie was forgotten")
+    check(not AAZ.isEngaged(rooster), "rooster went back to a zombie it gave up on")
 end
 
 function Tests.stops_when_zombie_driven_off()
@@ -228,6 +250,15 @@ function Tests.stops_when_zombie_driven_off()
     Run(3)
     check(not AAZ.isEngaged(bull), "bull chased a zombie out of the leash")
     check(not AAZ.isGivenUp(bull, zombie), "a zombie that left was marked unreachable")
+end
+
+function Tests.ignores_dragged_corpse()
+    Plain()
+    local bull = NewAnimal("bull", 10, 10, { breed = "holstein" })
+    local corpse = NewZombie(12, 10, { grappleOnly = true, grappled = true })
+    Run(3)
+    check(not AAZ.isEngaged(bull), "bull went for a corpse a player is dragging")
+    check(corpse:getHealth() == 2.0, "dragged corpse hit")
 end
 
 function Tests.ignores_fake_dead_and_other_floors()
@@ -300,7 +331,7 @@ end
 
 -- Multiplayer --------------------------------------------------------------------------
 
-function Tests.server_sends_hit_to_zombie_owner()
+function Tests.server_broadcasts_hit_on_owned_zombie()
     Plain()
     local owner = { name = "owner" }
     local bull = NewAnimal("bull", 10, 10, { breed = "holstein" })
@@ -309,8 +340,9 @@ function Tests.server_sends_hit_to_zombie_owner()
     local strikes, hits = sentCommands(AAZ.CMD_STRIKE), sentCommands(AAZ.CMD_HIT)
     check(#strikes == 1 and strikes[1].player == nil, "strike not broadcast")
     check(strikes[1].args.animal == bull:getOnlineID(), "strike for the wrong animal")
-    check(#hits == 1 and hits[1].player == owner, "hit not sent to the zombie's owner")
+    check(#hits == 1 and hits[1].player == nil, "hit not broadcast to every client")
     check(hits[1].args.zombie == zombie:getOnlineID(), "hit for the wrong zombie")
+    check(hits[1].args.lethal == false, "a 0.8 hit on a full-health zombie sent as lethal")
     check(zombie:getHealth() == 2.0, "server changed a zombie a client owns")
 end
 
@@ -319,18 +351,34 @@ function Tests.server_hits_unowned_zombie_itself()
     NewAnimal("bull", 10, 10, { breed = "holstein" })
     local zombie = NewZombie(11.2, 10)
     Run(1.5)
-    check(#sentCommands(AAZ.CMD_HIT) == 0, "hit sent for a zombie nobody owns")
     check(zombie:getHealth() < 2.0, "unowned zombie not hit")
+    local hits = sentCommands(AAZ.CMD_HIT)
+    check(#hits == 1, "clients not told to play the hit")
+    check(hits[1].args.lethal == false, "a 0.8 hit on a full-health zombie sent as lethal")
 end
 
-function Tests.client_lands_hit_on_own_zombie_only()
+function Tests.server_pushes_animal_state_with_warning_and_strike()
+    SandboxVars.AnimalsAttackZombies.Hesitation = false
+    local bull = NewAnimal("bull", 10, 10, { breed = "holstein" })
+    NewZombie(14, 10, { health = 100 })
+    Run(0.3)
+    check(bull.s.extraUpdates == 1, "warning not pushed to clients")
+    Run(6)
+    check(#strikeTimes(bull) >= 1 and bull.s.extraUpdates >= 2, "strike not pushed to clients")
+end
+
+function Tests.client_owner_takes_damage_others_react()
     Plain()
     local own = NewZombie(10, 10)
     local remote = NewZombie(20, 10, { remote = true })
-    FireServerCommand(AAZ.MODULE, AAZ.CMD_HIT, { zombie = own:getOnlineID(), x = 9, y = 10, damage = 0.5, knockdown = true })
-    FireServerCommand(AAZ.MODULE, AAZ.CMD_HIT, { zombie = remote:getOnlineID(), x = 19, y = 10, damage = 0.5, knockdown = true })
+    local remoteDying = NewZombie(30, 10, { remote = true })
+    FireServerCommand(AAZ.MODULE, AAZ.CMD_HIT, { zombie = own:getOnlineID(), x = 9, y = 10, damage = 0.5, knockdown = true, lethal = false })
+    FireServerCommand(AAZ.MODULE, AAZ.CMD_HIT, { zombie = remote:getOnlineID(), x = 19, y = 10, damage = 0.5, knockdown = false, lethal = false })
+    FireServerCommand(AAZ.MODULE, AAZ.CMD_HIT, { zombie = remoteDying:getOnlineID(), x = 29, y = 10, damage = 0.5, knockdown = false, lethal = true })
     check(math.abs(own:getHealth() - 1.5) < 1e-6 and own.s.knockedDown, "owned zombie not hit")
-    check(remote:getHealth() == 2.0, "remote zombie hit")
+    check(remote:getHealth() == 2.0, "a client changed the health of a zombie it does not own")
+    check(remote.s.staggerBack and not remote.s.knockedDown, "other client did not play the stagger")
+    check(remoteDying:getHealth() == 2.0 and remoteDying.s.knockedDown, "other client did not knock down a dying zombie")
 end
 
 function Tests.client_plays_strike()
@@ -409,18 +457,6 @@ function Tests.hesitation_off_charges_at_once()
     local bulls = bullsFacingZombies(5.8)
     Run(0.2)
     check(countEngaged(bulls) == 20, "with Hesitation off only " .. countEngaged(bulls) .. " of 20 charged")
-end
-
-function Tests.stress_makes_animals_quicker_to_charge()
-    SandboxVars.AnimalsAttackZombies.WarningDisplay = false
-    SandboxVars.AnimalsAttackZombies.StressOnEngage = 0
-    SandboxVars.AnimalsAttackZombies.StressPerSecond = 0
-    -- 2.4 tiles in: a calm bull commits 22% of the time per scan, a fully stressed one 33%.
-    local calm = bullsFacingZombies(2.4, 300)
-    local agitated = bullsFacingZombies(2.4, 300, 1010, { breed = "holstein", stress = 100 })
-    Run(0.7) -- two scans
-    check(countEngaged(agitated) > countEngaged(calm) * 1.2,
-        "stressed bulls " .. countEngaged(agitated) .. " vs calm " .. countEngaged(calm))
 end
 
 function Tests.warns_before_charging()
@@ -543,35 +579,70 @@ function Tests.retreat_off_fights_at_any_health()
     check(AAZ.isEngaged(bull), "bull did not fight with RetreatHealth 0")
 end
 
-function Tests.fighting_is_stressful()
+function Tests.fighting_leaves_stress_as_it_was()
+    Plain()
+    local bull = NewAnimal("bull", 10, 10, { stress = 13, genes = { aggressiveness = 0.4, strength = 0.5, stress = 1.0 } })
+    local zombie = NewZombie(11.2, 10, { health = 100 })
+    Run(10)
+    check(#hitTimes(zombie) > 0, "no fight")
+    check(bull:getStress() == 13, "a fight changed stress from 13 to " .. bull:getStress())
+end
+
+function Tests.stays_blocked_between_strikes()
     Plain()
     local bull = NewAnimal("bull", 10, 10, { breed = "holstein" })
     NewZombie(11.2, 10, { health = 100 })
-    Run(10)
-    -- 5 on committing, then 1.5 a second
-    local stress = bull:getStress()
-    check(stress > 18 and stress < 22, "stress after a 10 s fight: " .. stress)
+    local sawRecover = false
+    for _ = 1, 300 do
+        Run(1 / 60)
+        if AAZ.getFightPhase(bull) == "recover" then
+            sawRecover = true
+            check(bull.s.blockMovement, "not blocked in the pause between strikes")
+            check(not VanillaWander(bull, 30, 30), "vanilla could walk the bull off mid-fight")
+        end
+    end
+    check(sawRecover, "no pause between strikes in 5 s")
 end
 
-function Tests.stress_gene_and_option_scale_fight_stress()
+function Tests.charge_taken_over_by_vanilla_is_reissued()
     Plain()
-    SandboxVars.AnimalsAttackZombies.StressOnEngage = 10
-    SandboxVars.AnimalsAttackZombies.StressPerSecond = 3
-    local touchy = NewAnimal("bull", 10, 10, { genes = { aggressiveness = 0.4, strength = 0.5, stress = 1.0 } })
-    NewZombie(11.2, 10, { health = 100 })
+    local bull = NewAnimal("bull", 10, 10, { breed = "holstein" })
+    local zombie = NewZombie(15.5, 10, { health = 100 })
+    Run(0.6)
+    check(AAZ.getFightPhase(bull) == "charge", "not charging")
+    -- The charge path ends short of the zombie, and vanilla starts a wander right then.
+    bull.s.moving, bull.s.fightBehavior, bull.s.target = false, false, nil
+    check(VanillaWander(bull, 10, 30), "test setup: wander did not start")
+    Run(0.1)
+    check(bull.s.target == zombie, "bull wandered off mid-charge")
     Run(10)
-    -- (10 + 3 x 10) x 2 (1 + stress gene)
-    check(touchy:getStress() > 72 and touchy:getStress() < 88, "stress " .. touchy:getStress())
+    check(#hitTimes(zombie) > 0, "bull never got its hit in")
 end
 
-function Tests.fight_stress_off()
+function Tests.mother_whose_young_die_stops_fighting()
     Plain()
-    SandboxVars.AnimalsAttackZombies.StressOnEngage = 0
-    SandboxVars.AnimalsAttackZombies.StressPerSecond = 0
-    local bull = NewAnimal("bull", 10, 10)
-    NewZombie(11.2, 10, { health = 100 })
-    Run(5)
-    check(bull:getStress() == 0, "stress with FightStress 0: " .. bull:getStress())
+    local cow = NewAnimal("cow", 10, 10)
+    local calf = NewAnimal("cowcalf", 12, 10, { baby = true })
+    AddBaby(cow, calf)
+    NewZombie(16, 10, { health = 100 })
+    Run(0.6)
+    check(AAZ.isEngaged(cow), "cow did not defend her calf")
+    calf.s.dead = true
+    Run(0.6)
+    check(not AAZ.isEngaged(cow), "cow fought on with no young left")
+    check(not cow.s.blockMovement, "cow left frozen")
+end
+
+function Tests.carried_animal_comes_back_unfrozen()
+    SandboxVars.AnimalsAttackZombies.Hesitation = false
+    local rooster = NewAnimal("cockerel", 10, 10)
+    NewZombie(13, 10, { health = 100 })
+    Run(0.3)
+    check(AAZ.getFightPhase(rooster) == "warn" and rooster.s.blockMovement, "rooster did not square up")
+    rooster.s.held = true -- picked up mid-warning
+    Run(0.1)
+    check(not AAZ.isEngaged(rooster), "still fighting while carried")
+    check(not rooster.s.blockMovement, "rooster left frozen")
 end
 
 function Tests.server_broadcasts_warning_without_playing_it()
@@ -740,11 +811,13 @@ end
 
 -- Which mode each test loads the mod in; everything else is single player.
 TestModes = {
-    server_sends_hit_to_zombie_owner = "server",
+    server_broadcasts_hit_on_owned_zombie = "server",
     server_hits_unowned_zombie_itself = "server",
-    client_lands_hit_on_own_zombie_only = "client",
+    server_pushes_animal_state_with_warning_and_strike = "server",
+    client_owner_takes_damage_others_react = "client",
     client_plays_strike = "client",
     client_runs_no_fights = "client",
     server_broadcasts_warning_without_playing_it = "server",
+    carried_animal_comes_back_unfrozen = "sp",
     client_plays_warning = "client",
 }

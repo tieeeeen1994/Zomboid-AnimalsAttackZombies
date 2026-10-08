@@ -23,12 +23,15 @@
       - Otherwise fight, if it has something to guard: a male guards himself and the
         animals of his kind around him; a mother guards her babies. The target is the
         zombie nearest it among those within its range of anything it guards.
+        Only a zombie it has a clear straight line to counts: one on the far side of its
+        pen fence or inside a house is left alone instead of being charged and given up on
+        over and over. Neither is a corpse a player is dragging (a live IsoZombie while it
+        is grappled).
       - Hesitation option: it does not always commit at once. Each scan it charges with a
         chance that climbs steeply as the zombie gets closer to what it guards (sure to
-        charge within the last AlwaysChargePercent of its range), scaled by its species' temper, its
-        aggressiveness gene, its stress (an agitated animal is quicker to attack, as
-        vanilla's attackIfStressed has it) and the Aggression option. Until it commits it stands and watches the
-        zombie.
+        charge within the last AlwaysChargePercent of its range), scaled by its species'
+        temper, its aggressiveness gene and the Aggression option. Until it commits it
+        stands and watches the zombie.
 
     The range starts at the EngageRange option and follows the animal:
       - RutRange outside the mating season for species with a rut (rams, turkey toms),
@@ -61,7 +64,6 @@ local AAZ = AnimalsAttackZombies
 --   ChargeChanceAtEdge  % chance per scan to commit to a zombie at the edge of the range,
 --   ChargeChanceUpClose % and right beside what it guards, rising with closeness squared
 --   AlwaysChargePercent % of the range, from what it guards, inside which it always commits
---   StressAggression    % more likely to commit at full stress
 --   Aggression          multiplier on the chance to commit
 -- These stay fixed: they fit the engine or mirror vanilla, not the game's balance.
 local SCAN_INTERVAL = 0.5    -- animation seconds between scans
@@ -132,7 +134,7 @@ local function collectZombies(cell)
     local list = cell:getZombieList()
     for i = 0, list:size() - 1 do
         local zombie = list:get(i)
-        if not zombie:isDead() and not zombie:isFakeDead() and zombie:getCurrentSquare() then
+        if AAZ.isFightableZombie(zombie) then
             zombies[#zombies + 1] = {
                 zombie = zombie, x = zombie:getX(), y = zombie:getY(), z = math.floor(zombie:getZ()),
             }
@@ -175,8 +177,9 @@ local function getGuardPoints(entry, herds)
     return points
 end
 
--- The zombie nearest the animal among those within range of any spot it guards, the spot
--- nearest that zombie, and how far the zombie is from it.
+-- The zombie nearest the animal among those within range of any spot it guards and in a
+-- clear straight line from it, the spot nearest that zombie, and how far the zombie is
+-- from it.
 local function pickTarget(entry, points, range, zombies)
     local minX, maxX, minY, maxY = entry.x, entry.x, entry.y, entry.y
     for _, p in ipairs(points) do
@@ -186,7 +189,7 @@ local function pickTarget(entry, points, range, zombies)
     minX, maxX, minY, maxY = minX - range, maxX + range, minY - range, maxY + range
 
     local r2 = range * range
-    local best, bestAnchor, bestAnchorD2, bestD2
+    local candidates = {}
     for _, z in ipairs(zombies) do
         if z.z == entry.z and z.x >= minX and z.x <= maxX and z.y >= minY and z.y <= maxY
                 and not AAZ.isGivenUp(entry.animal, z.zombie) then
@@ -200,17 +203,18 @@ local function pickTarget(entry, points, range, zombies)
             end
             if anchor then
                 local dx, dy = z.x - entry.x, z.y - entry.y
-                local d2 = dx * dx + dy * dy
-                if not bestD2 or d2 < bestD2 then
-                    best, bestAnchor, bestAnchorD2, bestD2 = z, anchor, anchorD2, d2
-                end
+                candidates[#candidates + 1] = { z = z, anchor = anchor, anchorD2 = anchorD2, d2 = dx * dx + dy * dy }
             end
         end
     end
-    if not best then
-        return nil
+    -- Nearest first, and the line walk only until one is clear.
+    table.sort(candidates, function(a, b) return a.d2 < b.d2 end)
+    for _, c in ipairs(candidates) do
+        if AAZ.hasClearLine(entry.animal, c.z.zombie) then
+            return c.z, c.anchor, math.sqrt(c.anchorD2)
+        end
     end
-    return best, bestAnchor, math.sqrt(bestAnchorD2)
+    return nil
 end
 
 -- Whether the animal commits to a charge this scan (Hesitation option).
@@ -227,7 +231,6 @@ local function commits(animal, profile, anchorDist, range)
     local chance = (edge + (close - edge) * closeness * closeness)
         * AAZ.tuning(profile, "Temper")
         * (0.5 + AAZ.getGene(animal, "aggressiveness", 0.4))
-        * (1 + animal:getStress() / 100 * AAZ.opt("StressAggression", 50) / 100)
         * AAZ.opt("Aggression", 1)
     return ZombRandFloat(0, 1) < chance
 end
@@ -339,8 +342,9 @@ local function scan()
         if entry.points then
             fighters[#fighters + 1] = entry
         else
+            -- Hurt, its young gone or its species turned off: a fight in progress ends too.
+            AAZ.disengage(entry.animal)
             if isHurt(entry.animal) then
-                AAZ.disengage(entry.animal)
                 entry.fleeRadius = AAZ.opt("CrowdRadius", 8)
             else
                 entry.fleeRadius = AAZ.opt("FleeRange", 6)

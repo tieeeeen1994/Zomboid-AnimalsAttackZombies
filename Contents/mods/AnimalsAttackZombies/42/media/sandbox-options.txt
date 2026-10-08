@@ -164,16 +164,6 @@ option AnimalsAttackZombies.AlwaysChargePercent
     translation = AnimalsAttackZombies_AlwaysChargePercent,
 }
 
-option AnimalsAttackZombies.StressAggression
-{
-    type = integer,
-    min = 0,
-    max = 200,
-    default = 50,
-    page = AnimalsAttackZombiesBehavior,
-    translation = AnimalsAttackZombies_StressAggression,
-}
-
 option AnimalsAttackZombies.WarningDisplay
 {
     type = boolean,
@@ -220,26 +210,6 @@ option AnimalsAttackZombies.RetreatHealth
     default = 40,
     page = AnimalsAttackZombiesBehavior,
     translation = AnimalsAttackZombies_RetreatHealth,
-}
-
-option AnimalsAttackZombies.StressOnEngage
-{
-    type = double,
-    min = 0.0,
-    max = 100.0,
-    default = 5.0,
-    page = AnimalsAttackZombiesBehavior,
-    translation = AnimalsAttackZombies_StressOnEngage,
-}
-
-option AnimalsAttackZombies.StressPerSecond
-{
-    type = double,
-    min = 0.0,
-    max = 20.0,
-    default = 1.5,
-    page = AnimalsAttackZombiesBehavior,
-    translation = AnimalsAttackZombies_StressPerSecond,
 }
 
 option AnimalsAttackZombies.ChaseDistance

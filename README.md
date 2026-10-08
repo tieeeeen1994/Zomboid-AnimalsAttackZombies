@@ -8,11 +8,12 @@ Livestock that would stand up to a predator in real life now stand up to zombies
 
 They behave like the real thing. Every number behind this is a sandbox option, over three pages (general, behavior and per-species), so you can tune any of it:
 
-- **Sizing up.** An animal doesn't always charge the moment a zombie is in range. It stands and watches, and the closer the zombie gets to it or what it guards, the likelier it is to charge. One that comes right up is always charged. Mothers with young commit fastest and turkey toms bluff the most, and aggressive or stressed animals are quicker to go.
+- **Sizing up.** An animal doesn't always charge the moment a zombie is in range. It stands and watches, and the closer the zombie gets to it or what it guards, the likelier it is to charge. One that comes right up is always charged. Mothers with young commit fastest and turkey toms bluff the most, and aggressive animals are quicker to go.
 - **Warning.** Before charging, it stops, squares up to the zombie and calls out. Bulls warn longest; boars and roosters barely pause.
 - **Crowds.** Four zombies (by default) make a lone animal run. Every fighter of its kind standing with it adds one to that, so a group of bulls holds out longer.
 - **Injury.** Animals below 40% health (by default) don't fight.
-- **Stress.** Fighting stresses them on vanilla's scale, with vanilla's effects. A very stressed bull, ram, rooster or tom may turn on a player it doesn't trust.
+- **No stress from fighting.** Zombies and fights don't stress the animals that fight, so a bull at 13 stress before a fight is still at 13 after it. Stress from everything else (hunger, rain, being hit by a player) works as in vanilla.
+- **Line of sight.** An animal only goes for a zombie it can see a clear way to, so a bull doesn't keep charging a zombie on the far side of its fence. Corpses players are dragging are left alone.
 
 An animal charges, strikes with its own attack (a bull's head swipe, a boar's bite, a ram's head-butt, a rooster's spurs) and keeps at it until the zombie is dead, driven off or out of reach. Big animals knock zombies down, and a bull kills in about three hits.
 

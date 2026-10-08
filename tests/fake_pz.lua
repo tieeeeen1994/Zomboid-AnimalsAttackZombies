@@ -96,12 +96,15 @@ function NewZombie(x, y, opts)
         hitForce = 0, attackPosition = nil, hitFromBehind = false, hitReaction = nil,
         events = {}, owner = opts.owner, remote = opts.remote or false,
         fakeDead = opts.fakeDead or false, hitDir = NewVector2(),
+        grappleOnly = opts.grappleOnly or false, grappled = opts.grappled or false,
     } }
     function z:getX() return self.s.x end
     function z:getY() return self.s.y end
     function z:getZ() return self.s.z end
     function z:isDead() return self.s.health <= 0 end
     function z:isFakeDead() return self.s.fakeDead end
+    function z:isReanimatedForGrappleOnly() return self.s.grappleOnly end
+    function z:isBeingGrappled() return self.s.grappled end
     function z:getCurrentSquare() return squareOf(self) end
     function z:getHealth() return self.s.health end
     function z:setHealth(h)
@@ -151,7 +154,7 @@ function NewAnimal(animalType, x, y, opts)
         breed = opts.breed, inSeason = opts.inSeason ~= false,
         genes = opts.genes or { aggressiveness = 0.4, strength = 0.5 },
         health = opts.health or 1.0, stress = opts.stress or 0,
-        goAttackCalls = 0, fled = 0,
+        goAttackCalls = 0, fled = 0, held = false, extraUpdates = 0,
     } }
     local s = a.s
 
@@ -166,7 +169,11 @@ function NewAnimal(animalType, x, y, opts)
         s.moving = not FenceBetween(a, zombie)
     end
     function behavior:resetBehaviorAction() s.fightBehavior = false end
-    function behavior:setBlockMovement(b) s.blockMovement = b end
+    function behavior:setBlockMovement(b)
+        -- BaseAnimalBehavior.setBlockMovement(true) calls stopAllMovementNow().
+        if b then a:stopAllMovementNow() end
+        s.blockMovement = b
+    end
     function behavior:forceFleeFromChr(chr)
         s.fled = s.fled + 1
         local dx, dy = s.x - chr:getX(), s.y - chr:getY()
@@ -185,7 +192,7 @@ function NewAnimal(animalType, x, y, opts)
     function a:getCurrentSquare() return squareOf(self) end
     function a:getVehicle() return nil end
     function a:isOnHook() return false end
-    function a:isHeld() return false end
+    function a:isHeld() return s.held end
     function a:getBabies() return s.babies end
     function a:isBaby() return s.baby end
     function a:getBreed()
@@ -216,6 +223,28 @@ function NewAnimal(animalType, x, y, opts)
         s.target = nil
         s.fleeTo = nil
         s.fightBehavior = false -- AnimalPathFindState.exit() -> doBehaviorAction()
+        s.vars.idleAction = nil -- AnimalData.resetEatingCheck()
+    end
+    -- Where the current path leads: the zombie for a charge, a spot for anything else.
+    local pfb = {}
+    function pfb:isGoalCharacter() return s.moving and s.target ~= nil end
+    function pfb:getTargetChar() return s.target end
+    strict(pfb, "PathFindBehavior2")
+    function a:getPathFindBehavior2() return pfb end
+    function a:getPathTargetX()
+        if s.target then return math.floor(s.target:getX()) end
+        if s.fleeTo then return math.floor(s.fleeTo.x) end
+        return math.floor(s.x)
+    end
+    function a:getPathTargetY()
+        if s.target then return math.floor(s.target:getY()) end
+        if s.fleeTo then return math.floor(s.fleeTo.y) end
+        return math.floor(s.y)
+    end
+    function a:sendExtraUpdateToClients()
+        -- GameServer.udpEngine is null outside a server: the real call throws.
+        assert(MODE == "server", "sendExtraUpdateToClients outside a server")
+        s.extraUpdates = s.extraUpdates + 1
     end
     function a:faceThisObject(obj) s.facing = obj end
     function a:setVariable(key, value)
@@ -232,6 +261,17 @@ function NewAnimal(animalType, x, y, opts)
     strict(a, "IsoAnimal")
     World.animals[#World.animals + 1] = a
     return a
+end
+
+-- What vanilla's wanderIdle()/checkBehavior() does to an idle animal that is neither
+-- blocked nor busy: walk it somewhere else.
+function VanillaWander(animal, x, y)
+    local s = animal.s
+    if s.blockMovement or s.fightBehavior or s.moving then return false end
+    s.fleeTo = { x = x, y = y }
+    s.target = nil
+    s.moving = true
+    return true
 end
 
 function AddBaby(mother, baby)
